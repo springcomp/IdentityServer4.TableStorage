@@ -55,7 +55,7 @@ namespace SpringComp.IdentityServer.TableStorage.Stores
         /// <returns></returns>
         public async IAsyncEnumerable<IdentityResource> GetAllResourcesAsync()
         {
-            await foreach (var entity in _identityResources.EnumAsync(null))
+            await foreach (var entity in _identityResources.EnumAsync(string.Empty))
                 yield return await ConvertToModelAsync(entity);
         }
 

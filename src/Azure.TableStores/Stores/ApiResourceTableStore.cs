@@ -112,8 +112,8 @@ namespace SpringComp.IdentityServer.TableStorage.Stores
         /// <returns></returns>
         public async Task<ApiResource> FindResourceAsync(string name)
         {
-            var entity = await _apiResources.FindAsync(ApiResourceEntity.Partition, name);
-            return await ConvertToModelAsync(entity);
+            var apiResource = await _apiResources.FindAsync(ApiResourceEntity.Partition, name);
+            return await ConvertToModelAsync(apiResource);
         }
 
         /// <summary>
@@ -144,7 +144,7 @@ namespace SpringComp.IdentityServer.TableStorage.Stores
         /// <returns></returns>
         public async IAsyncEnumerable<ApiResource> GetAllResourcesAsync()
         {
-            await foreach (var api in _apiResources.EnumAsync(null))
+            await foreach (var api in _apiResources.EnumAsync(string.Empty))
                 yield return await ConvertToModelAsync(api);
         }
 

@@ -4,12 +4,12 @@
 
 using System;
 using IdentityServer4.Stores;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using SpringComp.IdentityServer.TableStorage;
 using SpringComp.IdentityServer.TableStorage.Options;
 using SpringComp.IdentityServer.TableStorage.Stores;
 
-namespace SpringComp.IdentityServer.TableStorage.Extensions
+namespace Microsoft.Extensions.DependencyInjection
 {
     public static class IdentityServerEntityFrameworkBuilderExtensions
     {
@@ -86,6 +86,13 @@ namespace SpringComp.IdentityServer.TableStorage.Extensions
 
             storeOptions.StorageTableOptionsAction = storageOptionsAction;
             return storeOptions;
+        }
+
+        public static IIdentityServerBuilder AddPersistedGrantStoreNotification<T>(this IIdentityServerBuilder builder)
+            where T : class, IPersistedGrantStoreNotification
+        {
+            builder.Services.AddTransient<IPersistedGrantStoreNotification, T>();
+            return builder;
         }
     }
 }

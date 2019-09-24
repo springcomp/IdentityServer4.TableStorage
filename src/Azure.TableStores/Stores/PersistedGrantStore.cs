@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -8,13 +9,13 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SpringComp.IdentityServer.TableStorage.Mappers;
 using SpringComp.IdentityServer.TableStorage.Options;
-using PersistedGrant = IdentityServer4.Models.PersistedGrant;
 
+using PersistedGrant = IdentityServer4.Models.PersistedGrant;
 using PersistedGrantEntity = SpringComp.IdentityServer.TableStorage.Entities.PersistedGrant;
 
 namespace SpringComp.IdentityServer.TableStorage.Stores
 {
-    public class PersistedGrantStore : TableEntityStore<Entities.PersistedGrant>, IPersistedGrantStore
+    public class PersistedGrantStore : TableEntityStore<PersistedGrantEntity>, IPersistedGrantStore
     {
         public PersistedGrantStore(
             IOptions<TableStorageOperationalOptions> tableStorageOptions,
@@ -161,7 +162,7 @@ namespace SpringComp.IdentityServer.TableStorage.Stores
             await RemoveAllAsync(persistedGrantList);
         }
 
-        private async Task RemoveAllAsync(IEnumerable<Entities.PersistedGrant> persistedGrants)
+        private async Task RemoveAllAsync(IEnumerable<PersistedGrantEntity> persistedGrants)
         {
             var table = await InitTableAsync();
 
@@ -172,6 +173,25 @@ namespace SpringComp.IdentityServer.TableStorage.Stores
                 Logger.LogDebug("removed {persistedGrantKey} from database with result {result}", persistedGrant.PartitionKey,
                     result.HttpStatusCode);
             }
+        }
+
+        internal async Task<IEnumerable<PersistedGrantEntity>> GetExpiredGrantsAsync(int batchSize)
+        {
+            await InitTableAsync();
+
+            var condition = TableQuery.GenerateFilterConditionForDate(
+                "Expiration", QueryComparisons.LessThanOrEqual, DateTime.UtcNow);
+
+            var query = new TableQuery<PersistedGrantEntity>()
+                .Where(condition)
+                .Take(batchSize)
+                ;
+
+            var collection = new List<PersistedGrantEntity>();
+            await foreach (var persistedGrant in EnumAsync(query))
+                collection.Add(persistedGrant);
+
+            return collection;
         }
     }
 }

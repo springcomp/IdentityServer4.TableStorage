@@ -3,14 +3,18 @@
 
 
 using System;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using IdentityServer4.EntityFramework;
 using IdentityServer4.Stores;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Logging;
+using SpringComp.IdentityServer.TableStorage.Mappers;
 using SpringComp.IdentityServer.TableStorage.Stores;
+
 using OperationalStoreOptions = SpringComp.IdentityServer.TableStorage.Options.OperationalStoreOptions;
+using PersistedGrant = SpringComp.IdentityServer.TableStorage.Entities.PersistedGrant;
 
 namespace SpringComp.IdentityServer.TableStorage
 {
@@ -21,7 +25,7 @@ namespace SpringComp.IdentityServer.TableStorage
     {
         private readonly OperationalStoreOptions _options;
         private readonly PersistedGrantStore _persistedGrantStore;
-        private readonly IOperationalStoreNotification _operationalStoreNotification;
+        private readonly IPersistedGrantStoreNotification _operationalStoreNotification;
         private readonly ILogger<TokenCleanupService> _logger;
 
         /// <summary>
@@ -35,7 +39,7 @@ namespace SpringComp.IdentityServer.TableStorage
             OperationalStoreOptions options,
             IPersistedGrantStore persistedGrantStore,
             ILogger<TokenCleanupService> logger,
-            IOperationalStoreNotification operationalStoreNotification = null)
+            IPersistedGrantStoreNotification operationalStoreNotification = null)
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
             if (_options.TokenCleanupBatchSize < 1) throw new ArgumentException("Token cleanup batch size interval must be at least 1");
@@ -72,26 +76,35 @@ namespace SpringComp.IdentityServer.TableStorage
         /// <returns></returns>
         protected virtual async Task RemoveGrantsAsync()
         {
-            var _cloudTable = await _persistedGrantStore.InitTableAsync();
-
-            var found = Int32.MaxValue;
-
-            while (found >= _options.TokenCleanupBatchSize)
+            try
             {
-                //found = expiredGrants.Length;
-                _logger.LogInformation("Removing {grantCount} grants", found);
+                var found = 0;
 
-                if (found > 0)
+                do
                 {
-                    try
+                    var collection = (await _persistedGrantStore .GetExpiredGrantsAsync(_options.TokenCleanupBatchSize))
+                        .ToArray()
+                        ;
+
+                    found = collection.Length;
+                    if (found > 0)
                     {
+                        _logger.LogInformation("Removing {grantCount} grants", found);
+                        if (_operationalStoreNotification != null)
+                        {
+                            await _operationalStoreNotification.PersistedGrantsRemoveAsync(collection);
+                        }
+
+                        foreach (var persistedGrant in collection)
+                            await _persistedGrantStore.DeleteAsync(persistedGrant);
                     }
-                    catch (Exception ex)
-                    {
-                        if (!HandleConcurrencyException(ex))
-                            throw;
-                    }
-                }
+                } while (found > 0);
+
+            }
+            catch (Exception ex)
+            {
+                if (!HandleConcurrencyException(ex))
+                    throw;
             }
         }
 
@@ -101,25 +114,25 @@ namespace SpringComp.IdentityServer.TableStorage
         /// <returns></returns>
         protected virtual Task RemoveDeviceCodesAsync()
         {
-//            var found = Int32.MaxValue;
-//
-//            while (found >= _options.TokenCleanupBatchSize)
-//            {
-//                //found = expiredCodes.Length;
-//                _logger.LogInformation("Removing {deviceCodeCount} device flow codes", found);
-//
-//                if (found > 0)
-//                {
-//                    try
-//                    {
-//                    }
-//                    catch (Exception ex)
-//                    {
-//                        if (!HandleConcurrencyException(ex))
-//                            throw;
-//                    }
-//                }
-//            }
+            //            var found = Int32.MaxValue;
+            //
+            //            while (found >= _options.TokenCleanupBatchSize)
+            //            {
+            //                //found = expiredCodes.Length;
+            //                _logger.LogInformation("Removing {deviceCodeCount} device flow codes", found);
+            //
+            //                if (found > 0)
+            //                {
+            //                    try
+            //                    {
+            //                    }
+            //                    catch (Exception ex)
+            //                    {
+            //                        if (!HandleConcurrencyException(ex))
+            //                            throw;
+            //                    }
+            //                }
+            //            }
 
             return Task.CompletedTask;
         }

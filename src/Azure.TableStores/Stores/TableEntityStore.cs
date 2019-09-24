@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos.Table;
@@ -71,6 +73,17 @@ namespace SpringComp.IdentityServer.TableStorage.Stores
             if (!string.IsNullOrEmpty(partitionKey))
                 query.FilterString = WhereEqual("PartitionKey", partitionKey);
 
+            await foreach (var item in EnumAsync(query))
+                yield return item;
+        }
+
+        public async IAsyncEnumerable<T> EnumAsync(TableQuery<T> query)
+        {
+            if (query == null)
+            {
+                throw new ArgumentException(nameof(query));
+            }
+
             var continuation = new TableContinuationToken();
 
             do
@@ -89,6 +102,22 @@ namespace SpringComp.IdentityServer.TableStorage.Stores
         {
             await InitTableAsync();
             await _cloudTable.ExecuteAsync(TableOperation.InsertOrReplace(entity));
+        }
+
+        public async Task DeleteAsync(string partitionKey, string rowKey, string eTag = "*")
+        {
+            await InitTableAsync();
+            await _cloudTable.ExecuteAsync(TableOperation.Delete(new DynamicTableEntity
+            {
+                PartitionKey = partitionKey,
+                RowKey = rowKey,
+                ETag = eTag,
+            }));
+        }
+        public async Task DeleteAsync(T entity)
+        {
+            await InitTableAsync();
+            await _cloudTable.ExecuteAsync(TableOperation.Delete(entity));
         }
 
         private static string WhereEqual(string property, string value)
