@@ -55,7 +55,7 @@ namespace Host
                 .AddSecretValidator<PrivateKeyJwtSecretValidator>()
                 ;
 
-            var connectionString = "DefaultEndpointsProtocol=https;AccountName=masked;AccountKey=JFXvVpoiQEExHltdNcO3LAHnD/6pnbsokpn5KIxERiesbICw99q2VFqrrzUXax6y9D0XM3inWdkeBJCZCUUfdw==;EndpointSuffix=core.windows.net;";
+            var connectionString = Configuration["IdentityServerTableStorageConnectionString"];
 
             builder
                 .AddConfigurationStore(connectionString)

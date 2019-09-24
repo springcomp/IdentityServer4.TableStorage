@@ -14,6 +14,8 @@
 tools/Cake/
 tools/packages.config.md5sum
 
+[Nn]u[Gg]et\.[Cc ]onfig
+
 # IdentityServer4 Temporary Signing Key
 tempkey\.rsa
 
