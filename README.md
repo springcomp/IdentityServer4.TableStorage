@@ -1,8 +1,10 @@
-# Powel.AzureTableStorage.IdentityServer4
+[![Build status](https://ci.appveyor.com/api/projects/status/nu94fsfhnyli3838/branch/master?svg=true)](https://ci.appveyor.com/project/springcomp/identityserver4-tablestorage/branch/master)
 
-Powel.AzureTableStorage.IdentityServer4 is a persistence layer for IdentityServer 4 configuration data that uses Azure Table Storage as its database abstraction.
+# IdentityServer4.TableStorage
 
-This only implements the persisted grant store, not the configuration stores.
+This projects provides a simple persistence layer for IdentityServer 4 configuration data that uses Azure Table Storage as its database abstraction.
+
+It supports the client, resource and operational stores.
 
 In order to run the tests, you will have to put an Azure Storage connection string in User Secrets, like this:
 

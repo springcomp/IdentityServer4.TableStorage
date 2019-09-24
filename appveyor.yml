@@ -2,8 +2,12 @@ image: Ubuntu
 
 version: 3.0.{build}
 
+environment:
+  NUGET_VERSION: "$APPVEYOR_BUILD_VERSION-rc1"
+
 build_script:
-- pswh: dotnet build /home/appveyor/projects/SpringComp.IdentityServer4.Azure.Tables/SpringComp.IdentityServer4.Azure.Tables.sln
+- pwsh: echo $env:NUGET_VERSION
+- pwsh: cd /home/appveyor/projects/identityserver4-tablestorage/src/Azure.TableStores; dotnet build /p:Version=$env:NUGET_VERSION
 
 test: off
 
@@ -11,12 +15,15 @@ artifacts:
 - path: '**\*.nupkg'
 
 deploy:
-- provider: NuGet
+  provider: NuGet
   server: 
   api_key:
     secure: Z8nSE5S57KcOTLNM16PHluwmg6m/SvkpKzl29TyMXt5OlSUrSwkM0P4aU6Lz4d5fa
   skip_symbols: true
   artifact: /.*\.nupkg/
+  on:
+    branch: master # only release from master branch
+    APPVEYOR_REPO_TAG: true # only release on new tag
 
 #---------------------------------#
 #  Skip builds for doc changes    #
