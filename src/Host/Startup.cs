@@ -6,8 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Host.Configuration;
-using IdentityServer4.EntityFramework;
-using IdentityServer4.EntityFramework.Entities;
 using IdentityServer4.Quickstart.UI;
 using IdentityServer4.Validation;
 using Microsoft.AspNetCore.Builder;
@@ -17,7 +15,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using SpringComp.IdentityServer.TableStorage.Extensions;
+using SpringComp.IdentityServer.TableStorage;
+using SpringComp.IdentityServer.TableStorage.Entities;
 using SpringComp.IdentityServer.TableStorage.Options;
 using SpringComp.IdentityServer.TableStorage.Stores;
 
@@ -65,8 +64,7 @@ namespace Host
                     options.EnableTokenCleanup = true;
                 })
                 .AddTestUsers(TestUsers.Users)
-
-                .AddOperationalStoreNotification<Notification>()
+                .AddPersistedGrantStoreNotification<Notification>()
                 ;
 
             if (Environment.IsDevelopment())
@@ -82,7 +80,6 @@ namespace Host
         public void Configure(IApplicationBuilder app)
         {
             Seed(app);
-
 
             if (Environment.IsDevelopment())
             {
@@ -122,10 +119,12 @@ namespace Host
         }
     }
 
-    public class Notification : IOperationalStoreNotification
+    public class Notification : IPersistedGrantStoreNotification
     {
-        public Task PersistedGrantsRemovedAsync(IEnumerable<PersistedGrant> persistedGrants)
+        public Task PersistedGrantsRemoveAsync(IEnumerable<PersistedGrant> persistedGrants)
         {
+            foreach (var persistedGrant in persistedGrants)
+                System.Diagnostics.Debug.WriteLine($"Delete Persisted Grant : {persistedGrant}");
             return Task.CompletedTask;
         }
     }
