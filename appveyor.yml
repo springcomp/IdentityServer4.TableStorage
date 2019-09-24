@@ -1,0 +1,26 @@
+image: Ubuntu
+
+version: 3.0.{build}
+
+build_script:
+- pswh: dotnet build /home/appveyor/projects/SpringComp.IdentityServer4.Azure.Tables/SpringComp.IdentityServer4.Azure.Tables.sln
+
+test: off
+
+artifacts:
+- path: '**\*.nupkg'
+
+deploy:
+- provider: NuGet
+  server: 
+  api_key:
+    secure: Z8nSE5S57KcOTLNM16PHluwmg6m/SvkpKzl29TyMXt5OlSUrSwkM0P4aU6Lz4d5fa
+  skip_symbols: true
+  artifact: /.*\.nupkg/
+
+#---------------------------------#
+#  Skip builds for doc changes    #
+#---------------------------------#
+skip_commits:
+  # Regex for matching commit message
+  message: /docs.*/
