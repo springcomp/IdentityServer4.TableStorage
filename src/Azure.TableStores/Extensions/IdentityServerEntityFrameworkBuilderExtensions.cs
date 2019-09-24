@@ -3,6 +3,7 @@
 
 
 using System;
+using System.Linq;
 using IdentityServer4.Stores;
 using Microsoft.Extensions.Hosting;
 using SpringComp.IdentityServer.TableStorage;
@@ -29,11 +30,11 @@ namespace Microsoft.Extensions.DependencyInjection
                 }
             );
 
-            builder.Services.AddTransient<IdentityResourceTableStore>();
-            builder.Services.AddTransient<ApiResourceTableStore>();
+            builder.Services.AddSingleton<IdentityResourceTableStore>();
+            builder.Services.AddSingleton<ApiResourceTableStore>();
 
-            builder.Services.AddTransient<IResourceStore, ResourceStore>();
-            builder.Services.AddTransient<IClientStore, ClientStore>();
+            builder.Services.AddSingleton<IResourceStore, ResourceStore>();
+            builder.Services.AddSingleton<IClientStore, ClientStore>();
 
             return builder;
         }
@@ -70,7 +71,7 @@ namespace Microsoft.Extensions.DependencyInjection
             builder.Services.AddTransient<TokenCleanupService>();
             builder.Services.AddSingleton<IHostedService, TokenCleanupHost>();
 
-            builder.Services.AddTransient<IPersistedGrantStore, PersistedGrantStore>();
+            builder.Services.AddSingleton<IPersistedGrantStore, PersistedGrantStore>();
 
             return builder;
         }

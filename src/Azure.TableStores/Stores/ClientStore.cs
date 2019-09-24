@@ -173,6 +173,8 @@ namespace SpringComp.IdentityServer.TableStorage.Stores
         public async Task<Client> FindClientByIdAsync(string clientId)
         {
             var entity = await _clients.FindAsync(ClientEntity.Partition, clientId);
+            if (entity == null)
+                return null;
             return await ConvertToModelAsync(entity);
         }
 

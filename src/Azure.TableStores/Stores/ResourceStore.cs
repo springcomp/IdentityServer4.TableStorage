@@ -64,6 +64,8 @@ namespace SpringComp.IdentityServer.TableStorage.Stores
         public async Task<Resources> GetAllResourcesAsync()
         {
             var identityResources = new List<IdentityResource>();
+            await foreach (var identityResource in _identityResources.GetAllResourcesAsync())
+                identityResources.Add(identityResource);
 
             var apiResources = new List<ApiResource>();
             await foreach (var apiResource in _apiResources.GetAllResourcesAsync())

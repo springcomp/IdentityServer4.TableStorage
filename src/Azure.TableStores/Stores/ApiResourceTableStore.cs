@@ -113,6 +113,8 @@ namespace SpringComp.IdentityServer.TableStorage.Stores
         public async Task<ApiResource> FindResourceAsync(string name)
         {
             var apiResource = await _apiResources.FindAsync(ApiResourceEntity.Partition, name);
+            if (apiResource == null)
+                return null;
             return await ConvertToModelAsync(apiResource);
         }
 
