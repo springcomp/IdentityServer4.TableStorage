@@ -182,16 +182,28 @@ namespace SpringComp.IdentityServer.TableStorage.Stores
             var condition = TableQuery.GenerateFilterConditionForDate(
                 "Expiration", QueryComparisons.LessThanOrEqual, DateTime.UtcNow);
 
-            var query = new TableQuery<PersistedGrantEntity>()
-                .Where(condition)
-                .Take(batchSize)
-                ;
+            // we cannot perform a datetime comparison in Azure Storage
+            // using the LessThanOrEqual operator
+            // so we load a batch of records that match the criteria
+
+            var query = new TableQuery<PersistedGrantEntity>();
 
             var collection = new List<PersistedGrantEntity>();
             await foreach (var persistedGrant in EnumAsync(query))
-                collection.Add(persistedGrant);
+            {
+                if (IsExpired(persistedGrant))
+                    collection.Add(persistedGrant);
+                if (collection.Count >= batchSize)
+                    break;
+            }
 
             return collection;
+        }
+
+        private static bool IsExpired(PersistedGrantEntity persistedGrant)
+        {
+            var expired = (persistedGrant.Expiration ?? DateTime.MaxValue) <= DateTime.UtcNow;
+            return expired;
         }
     }
 }
