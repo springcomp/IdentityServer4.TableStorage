@@ -35,6 +35,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             builder.Services.AddSingleton<IResourceStore, ResourceStore>();
             builder.Services.AddSingleton<IClientStore, ClientStore>();
+            builder.AddCorsPolicyService<TableStoreCorsPolicyService>();
 
             return builder;
         }

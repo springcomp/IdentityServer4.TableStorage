@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections;
+using System.Linq;
 using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -19,6 +21,7 @@ using ClientPostLogoutRedirectUriEntity = SpringComp.IdentityServer.TableStorage
 using ClientRedirectUriEntity = SpringComp.IdentityServer.TableStorage.Entities.ClientRedirectUri;
 using ClientSecretEntity = SpringComp.IdentityServer.TableStorage.Entities.ClientSecret;
 using ClientScopeEntity = SpringComp.IdentityServer.TableStorage.Entities.ClientScope;
+using System.Collections.Generic;
 
 namespace SpringComp.IdentityServer.TableStorage.Stores
 {
@@ -176,6 +179,19 @@ namespace SpringComp.IdentityServer.TableStorage.Stores
             if (entity == null)
                 return null;
             return await ConvertToModelAsync(entity);
+        }
+
+        /// <summary>
+        /// Returns all available clients.
+        /// </summary>
+        /// <returns></returns>
+        public async Task<Client[]> GetAllClientsAsync()
+        {
+            var collection = new List<Client>();
+            await foreach (var client in _clients.EnumAsync(ClientEntity.Partition))
+                collection.Add(await ConvertToModelAsync(client));
+
+            return collection.ToArray();
         }
 
         private async Task<Client> ConvertToModelAsync(ClientEntity entity)
