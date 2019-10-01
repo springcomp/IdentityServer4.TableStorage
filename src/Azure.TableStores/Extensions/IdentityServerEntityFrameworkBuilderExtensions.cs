@@ -4,7 +4,10 @@
 
 using System;
 using System.Linq;
+using IdentityServer4.Services;
 using IdentityServer4.Stores;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using SpringComp.IdentityServer.TableStorage;
 using SpringComp.IdentityServer.TableStorage.Options;
@@ -33,9 +36,19 @@ namespace Microsoft.Extensions.DependencyInjection
             builder.Services.AddSingleton<IdentityResourceTableStore>();
             builder.Services.AddSingleton<ApiResourceTableStore>();
 
-            builder.Services.AddSingleton<IResourceStore, ResourceStore>();
-            builder.Services.AddSingleton<IClientStore, ClientStore>();
-            builder.AddCorsPolicyService<TableStoreCorsPolicyService>();
+            // enable caching for better performances
+
+            builder.Services.AddSingleton<IMemoryCache, MemoryCache>();
+            builder.Services.AddTransient(typeof(ICache<>), typeof(DefaultCache<>));
+
+            builder.Services.AddSingleton<ClientStore>();
+            builder.Services.AddTransient<IClientStore, CachingClientStore<ClientStore>>();
+
+            builder.Services.AddTransient<ResourceStore>();
+            builder.Services.AddTransient<IResourceStore, CachingResourceStore<ResourceStore>>();
+
+            builder.Services.TryAddTransient<TableStoreCorsPolicyService>();
+            builder.Services.AddTransient<ICorsPolicyService, CachingCorsPolicyService<TableStoreCorsPolicyService>>();
 
             return builder;
         }
