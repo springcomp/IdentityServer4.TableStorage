@@ -8,7 +8,7 @@ branches:
     - /^\d+\.\d+\.\d+(\.\d+)|(\-[a-z0-9]*)$/
 
 environment:
-  NUGET_VERSION: "$APPVEYOR_BUILD_VERSION-rc1"
+  NUGET_VERSION: "$APPVEYOR_BUILD_VERSION"
 
 build_script:
 - pwsh: echo $env:NUGET_VERSION
